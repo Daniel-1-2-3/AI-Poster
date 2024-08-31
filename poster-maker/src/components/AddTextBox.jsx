@@ -13,7 +13,7 @@ const AddTextBox = ({textBoxes, setTextBoxes}) => {
   }
 
   const addTextBox = () => {
-    setTextBoxes([...textBoxes, "thing"]);
+    setTextBoxes([...textBoxes, null]);
   }
 
   return (

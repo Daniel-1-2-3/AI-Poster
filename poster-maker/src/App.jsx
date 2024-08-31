@@ -5,9 +5,9 @@ import { useState } from 'react'
 const App = () => {
   const [textBoxes, setTextBoxes] = useState([])
   return (
-    <div className="h-screen bg-gray-200 flex overflow-y-auto">
+    <div className="h-screen bg-gray-200 flex overflow-y-hidden">
       <div className="flex flex-grow w-1/2 justify-center items-center">
-        <div className="h-3/4 w-11/12 bg-white rounded-lg">
+        <div className="h-5/6 w-11/12 bg-white rounded-lg">
           {textBoxes.map((item, index) => (
             <div
               key={index}
