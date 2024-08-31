@@ -8,16 +8,14 @@ const App = () => {
     <div className="h-screen bg-gray-200 flex overflow-hidden">
       <div className="flex w-1/2 justify-center items-center">
         <div className="h-5/6 w-11/12 bg-white rounded-lg">
-          {textBoxes.map((item, index) => (
-            <div
-              key={index}
-            >
-              <MovableTextBox />
+          {textBoxes.map((attributes, index) => (
+            <div key={index} >
+              <MovableTextBox isDeleted={attributes[0]} textBoxes={textBoxes}/>
             </div>
           ))}
         </div>
       </div>
-      <div className="flex flex-grow w-1/2 bg-white">
+      <div className="flex flex-col w-1/2 bg-white overflow-y-scroll">
         <AddTextBox textBoxes={textBoxes} setTextBoxes={setTextBoxes}/>
       </div>
     </div>

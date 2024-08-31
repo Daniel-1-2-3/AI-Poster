@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
+import PropTypes from 'prop-types'
 
-const MovableTextBox = () => {
+const MovableTextBox = ({isDeleted}) => {
     const [isTyping, setIsTyping] = useState(false)
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
@@ -130,27 +131,35 @@ const MovableTextBox = () => {
     }
 
     return (
-        <div
-            ref={boxRef}
-            className="absolute p-3 bg-teal-200 text-gray-950 flex items-center justify-center cursor-pointer rounded-md z-10"
-            style={{ left: `${position.x}px`, top: `${position.y}px`, width: `${dimensions.width}px`, height: dimensions.height }}
-            onMouseDown={handleMouseDown}
-        >
-            <p
-                ref={textRef}
-                className="w-full h-full mx-2 border-2 border-transparent rounded-s-sm focus:outline-none hover:border-gray-100 focus:border-gray-100 cursor-text"
-                contentEditable
-                suppressContentEditableWarning
-                onInput={handleInput}
-                onClick={moveCursor}
-            >
-                {text}
-            </p>
-            {/* Resize Handle */}
-            <div className="resize-handle absolute bottom-0 right-0 w-3 h-3 cursor-se-resize border-b-4 border-b-transparent border-r-4 border-r-transparent
-            hover:border-b-gray-400 active:border-b-gray-400 rounded-br-md hover:border-r-gray-400 active:border-r-gray-400"></div>
-        </div>
+        <>
+            {!isDeleted && 
+                <div
+                    ref={boxRef}
+                    className="absolute p-3 bg-teal-200 text-gray-950 flex items-center justify-center cursor-pointer rounded-md z-10 border-transparent border-dashed border-2 active:border-gray-500"
+                    style={{ left: `${position.x}px`, top: `${position.y}px`, width: `${dimensions.width}px`, height: dimensions.height }}
+                    onMouseDown={handleMouseDown}
+                >
+                    <p
+                        ref={textRef}
+                        className="w-full h-full mx-2 border-2 border-transparent rounded-s-sm focus:outline-none hover:border-gray-100 focus:border-gray-100 cursor-text"
+                        contentEditable
+                        suppressContentEditableWarning
+                        onInput={handleInput}
+                        onClick={moveCursor}
+                    >
+                        {text}
+                    </p>
+                    {/* Resize Handle */}
+                    <div className="resize-handle absolute bottom-0 right-0 w-3 h-3 cursor-se-resize border-b-4 border-b-transparent border-r-4 border-r-transparent
+                    hover:border-b-gray-400 active:border-b-gray-400 rounded-br-md hover:border-r-gray-400 active:border-r-gray-400"></div>
+                </div>
+            }
+        </>
     );
 };
+
+MovableTextBox.propTypes = {
+    isDeleted: PropTypes.bool.isRequired
+}
 
 export default MovableTextBox;
