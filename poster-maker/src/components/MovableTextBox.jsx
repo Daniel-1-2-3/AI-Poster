@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types'
 
-const MovableTextBox = ({isDeleted}) => {
+const MovableTextBox = ({isDeleted, textBoxes, setTextBoxes, index}) => {
     const [isTyping, setIsTyping] = useState(false)
+    const [selected, setSelected] = useState(false)
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
     const [text, setText] = useState('');
@@ -55,14 +56,28 @@ const MovableTextBox = ({isDeleted}) => {
             setIsDragging(false);
             setIsResizing(false);
         };
+        
+        const handleClickOutside = (e) => {
+            if (boxRef.current && !boxRef.current.contains(e.target)) {
+                //set clicked state as false
+                const isSelected = false
+                const newTextBoxesList = [...textBoxes]
+                newTextBoxesList[index] = [isDeleted, isSelected]
+                setSelected(isSelected)
+                setTextBoxes(newTextBoxesList)
+            }   
+        };
 
         window.addEventListener('mousemove', handleMouseMove);
         window.addEventListener('mouseup', handleMouseUp);
+        window.addEventListener('mousedown', handleClickOutside);
 
         return () => {
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mouseup', handleMouseUp);
+            window.removeEventListener('mousedown', handleClickOutside);
         };
+        
     }, [isDragging, isResizing]);
 
     const handleMouseDown = (e) => {
@@ -85,6 +100,12 @@ const MovableTextBox = ({isDeleted}) => {
                 y: e.clientY - position.y
             };
         }
+        //set clicked state as true
+        const isSelected = true
+        const newTextBoxesList = [...textBoxes]
+        newTextBoxesList[index] = [isDeleted, isSelected]
+        setSelected(isSelected)
+        setTextBoxes(newTextBoxesList)
         e.preventDefault();
     };
 
@@ -135,7 +156,8 @@ const MovableTextBox = ({isDeleted}) => {
             {!isDeleted && 
                 <div
                     ref={boxRef}
-                    className="absolute p-3 bg-teal-200 text-gray-950 flex items-center justify-center cursor-pointer rounded-md z-10 border-transparent border-dashed border-2 active:border-gray-500"
+                    className={`absolute p-3 bg-teal-200 text-gray-950 flex items-center justify-center cursor-pointer rounded-md z-10 border-dashed border-2 focus:border-gray-500 active:border-gray-500
+                    ${selected ? 'border-dashed border-gray-500' : 'border-transparent'}`}
                     style={{ left: `${position.x}px`, top: `${position.y}px`, width: `${dimensions.width}px`, height: dimensions.height }}
                     onMouseDown={handleMouseDown}
                 >
@@ -159,7 +181,10 @@ const MovableTextBox = ({isDeleted}) => {
 };
 
 MovableTextBox.propTypes = {
-    isDeleted: PropTypes.bool.isRequired
+    isDeleted: PropTypes.bool.isRequired,
+    textBoxes: PropTypes.array.isRequired,
+    setTextBoxes: PropTypes.func.isRequired,
+    index: PropTypes.number.isRequired,
 }
 
 export default MovableTextBox;

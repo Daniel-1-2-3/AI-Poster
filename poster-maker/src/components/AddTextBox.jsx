@@ -51,6 +51,7 @@ const AddTextBox = ({textBoxes, setTextBoxes}) => {
                   <p>here the commands and stuff</p>
                   <button className="bg-red-100" onClick={() => deleteTextBox(index)}>
                       <p>Delete Box</p>
+                      <p>{attributes[1]}</p>
                   </button>
                 </div>
                 }

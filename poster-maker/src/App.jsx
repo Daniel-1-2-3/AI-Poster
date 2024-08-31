@@ -10,7 +10,7 @@ const App = () => {
         <div className="h-5/6 w-11/12 bg-white rounded-lg">
           {textBoxes.map((attributes, index) => (
             <div key={index} >
-              <MovableTextBox isDeleted={attributes[0]} textBoxes={textBoxes}/>
+              <MovableTextBox isDeleted={attributes[0]} textBoxes={textBoxes} setTextBoxes={setTextBoxes} index={index}/>
             </div>
           ))}
         </div>
