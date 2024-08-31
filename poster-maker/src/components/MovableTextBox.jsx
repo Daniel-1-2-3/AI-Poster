@@ -1,14 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
-import PropTypes from 'prop-types'
+import PropTypes from 'prop-types';
 
-const MovableTextBox = ({isDeleted, textBoxes, setTextBoxes, index}) => {
-    const [isTyping, setIsTyping] = useState(false)
-    const [selected, setSelected] = useState(false)
+const MovableTextBox = ({ isDeleted, setSelectState }) => {
+    const [isTyping, setIsTyping] = useState(false);
+    const [selected, setSelected] = useState(true);
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
     const [text, setText] = useState('');
     const [position, setPosition] = useState({ x: 29, y: 62 });
-    const [dimensions, setDimensions] = useState({ width: 200, height: 'auto' }); // Change initial height to 'auto'
+    const [dimensions, setDimensions] = useState({ width: 200, height: 'auto' });
     const startOffset = useRef({ x: 0, y: 0 });
     const startSize = useRef({ width: 0, height: 0 });
     const boxRef = useRef(null);
@@ -28,8 +28,8 @@ const MovableTextBox = ({isDeleted, textBoxes, setTextBoxes, index}) => {
                 const boundary = {
                     left: 29,
                     top: 62,
-                    right: 665 - boxRef.current.offsetWidth, // Adjust according to box width
-                    bottom: 675 - boxRef.current.offsetHeight // Adjust according to box height
+                    right: 665 - boxRef.current.offsetWidth,
+                    bottom: 675 - boxRef.current.offsetHeight
                 };
 
                 // Restrict movement within boundary
@@ -56,16 +56,13 @@ const MovableTextBox = ({isDeleted, textBoxes, setTextBoxes, index}) => {
             setIsDragging(false);
             setIsResizing(false);
         };
-        
+
         const handleClickOutside = (e) => {
             if (boxRef.current && !boxRef.current.contains(e.target)) {
-                //set clicked state as false
-                const isSelected = false
-                const newTextBoxesList = [...textBoxes]
-                newTextBoxesList[index] = [isDeleted, isSelected]
-                setSelected(isSelected)
-                setTextBoxes(newTextBoxesList)
-            }   
+                const isSelected = false;
+                setSelectState([isDeleted, isSelected]);
+                setSelected(isSelected);
+            }
         };
 
         window.addEventListener('mousemove', handleMouseMove);
@@ -77,40 +74,35 @@ const MovableTextBox = ({isDeleted, textBoxes, setTextBoxes, index}) => {
             window.removeEventListener('mouseup', handleMouseUp);
             window.removeEventListener('mousedown', handleClickOutside);
         };
-        
-    }, [isDragging, isResizing]);
+
+    }, [isDragging, isResizing, isDeleted, setSelectState]);
 
     const handleMouseDown = (e) => {
         if (e.target.classList.contains('resize-handle')) {
-            setIsTyping(false)
+            setIsTyping(false);
             setIsResizing(true);
             startSize.current = {
                 width: boxRef.current.offsetWidth,
                 height: boxRef.current.offsetHeight,
             };
         } else if (e.target.tagName === 'P') {
-            // Avoid setting dragging for text editing
             e.stopPropagation();
-            setIsTyping(true)
+            setIsTyping(true);
         } else {
-            setIsTyping(false)
+            setIsTyping(false);
             setIsDragging(true);
             startOffset.current = {
                 x: e.clientX - position.x,
                 y: e.clientY - position.y
             };
         }
-        //set clicked state as true
-        const isSelected = true
-        const newTextBoxesList = [...textBoxes]
-        newTextBoxesList[index] = [isDeleted, isSelected]
-        setSelected(isSelected)
-        setTextBoxes(newTextBoxesList)
+        const isSelected = true;
+        setSelected(isSelected);
+        setSelectState([isDeleted, isSelected]);
         e.preventDefault();
     };
 
     useEffect(() => {
-        // Focus on the input component so that it can be edited
         if (textRef.current) {
             textRef.current.focus();
         }
@@ -118,73 +110,65 @@ const MovableTextBox = ({isDeleted, textBoxes, setTextBoxes, index}) => {
     }, [isTyping]);
 
     const handleInput = (e) => {
-        setText(e.target.innerText); // Update the text state
+        setText(e.target.innerText);
 
-        // Automatically adjust box height based on text content
         if (textRef.current && boxRef.current) {
-            if (textRef.current.scrollHeight + 60 > boxRef.current.offsetWidth){
-                const newHeight = textRef.current.scrollHeight + 25 ; // Add some padding
+            if (textRef.current.scrollHeight + 60 > boxRef.current.offsetWidth) {
+                const newHeight = textRef.current.scrollHeight + 25;
                 setDimensions(prev => ({ ...prev, height: newHeight }));
             }
         }
 
-        // Move cursor to the end of the text
         const selection = window.getSelection();
         const range = document.createRange();
         const p = e.target;
 
         range.selectNodeContents(p);
-        range.collapse(false); // Move cursor to the end
+        range.collapse(false);
         selection.removeAllRanges();
         selection.addRange(range);
     };
 
     const moveCursor = (e) => {
-        // Move cursor to the end of the text
         const selection = window.getSelection();
         const range = document.createRange();
         const p = e.target;
 
         range.selectNodeContents(p);
-        range.collapse(false); // Move cursor to the end
+        range.collapse(false);
         selection.removeAllRanges();
         selection.addRange(range);
-    }
+    };
+
+    if (isDeleted) return null;
 
     return (
-        <>
-            {!isDeleted && 
-                <div
-                    ref={boxRef}
-                    className={`absolute p-3 bg-teal-200 text-gray-950 flex items-center justify-center cursor-pointer rounded-md z-10 border-dashed border-2 focus:border-gray-500 active:border-gray-500
-                    ${selected ? 'border-dashed border-gray-500' : 'border-transparent'}`}
-                    style={{ left: `${position.x}px`, top: `${position.y}px`, width: `${dimensions.width}px`, height: dimensions.height }}
-                    onMouseDown={handleMouseDown}
-                >
-                    <p
-                        ref={textRef}
-                        className="w-full h-full mx-2 border-2 border-transparent rounded-s-sm focus:outline-none hover:border-gray-100 focus:border-gray-100 cursor-text"
-                        contentEditable
-                        suppressContentEditableWarning
-                        onInput={handleInput}
-                        onClick={moveCursor}
-                    >
-                        {text}
-                    </p>
-                    {/* Resize Handle */}
-                    <div className="resize-handle absolute bottom-0 right-0 w-3 h-3 cursor-se-resize border-b-4 border-b-transparent border-r-4 border-r-transparent
-                    hover:border-b-gray-400 active:border-b-gray-400 rounded-br-md hover:border-r-gray-400 active:border-r-gray-400"></div>
-                </div>
-            }
-        </>
+        <div
+            ref={boxRef}
+            className={`absolute p-3 bg-teal-200 text-gray-950 flex items-center justify-center cursor-pointer rounded-md z-10 border-dashed border-2 focus:border-gray-500 active:border-gray-500
+            ${selected ? 'border-dashed border-gray-500' : 'border-transparent'}`}
+            style={{ left: `${position.x}px`, top: `${position.y}px`, width: `${dimensions.width}px`, height: dimensions.height }}
+            onMouseDown={handleMouseDown}
+        >
+            <p
+                ref={textRef}
+                className="w-full h-full mx-2 border-2 border-transparent rounded-s-sm focus:outline-none hover:border-gray-100 focus:border-gray-100 cursor-text"
+                contentEditable
+                suppressContentEditableWarning
+                onInput={handleInput}
+                onClick={moveCursor}
+            >
+                {text}
+            </p>
+            <div className="resize-handle absolute bottom-0 right-0 w-3 h-3 cursor-se-resize border-b-4 border-b-transparent border-r-4 border-r-transparent
+            hover:border-b-gray-400 active:border-b-gray-400 rounded-br-md hover:border-r-gray-400 active:border-r-gray-400"></div>
+        </div>
     );
 };
 
 MovableTextBox.propTypes = {
     isDeleted: PropTypes.bool.isRequired,
-    textBoxes: PropTypes.array.isRequired,
-    setTextBoxes: PropTypes.func.isRequired,
-    index: PropTypes.number.isRequired,
-}
+    setSelectState: PropTypes.func.isRequired,
+};
 
 export default MovableTextBox;

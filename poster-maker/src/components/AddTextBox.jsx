@@ -45,9 +45,9 @@ const AddTextBox = ({textBoxes, setTextBoxes}) => {
         {showFunctions &&
           <div className="w-full">
             {textBoxes.map((attributes, index) => (
-              <>
+              <div key={index} >
                 {!attributes[0] &&
-                <div key={index} className="border-y-2 border-y-gray-200 w-full bg-white">
+                <div className="border-y-2 border-y-gray-200 w-full bg-white">
                   <p>here the commands and stuff</p>
                   <button className="bg-red-100" onClick={() => deleteTextBox(index)}>
                       <p>Delete Box</p>
@@ -55,7 +55,7 @@ const AddTextBox = ({textBoxes, setTextBoxes}) => {
                   </button>
                 </div>
                 }
-              </>
+              </div>
             ))}
           </div>
         }
@@ -65,7 +65,7 @@ const AddTextBox = ({textBoxes, setTextBoxes}) => {
 }
 
 AddTextBox.propTypes = {
-  textBoxes: PropTypes.arrayOf(PropTypes.string).isRequired,
+  textBoxes: PropTypes.array.isRequired,
   setTextBoxes: PropTypes.func.isRequired,
 }
 
