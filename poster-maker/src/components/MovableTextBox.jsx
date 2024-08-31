@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-const MovableTextBox = ({ isDeleted, setSelectState }) => {
+const MovableTextBox = ({ isDeleted, setSelectState, startingText }) => {
     const [isTyping, setIsTyping] = useState(false);
     const [selected, setSelected] = useState(true);
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
-    const [text, setText] = useState('');
+    const [text, setText] = useState(startingText);
     const [position, setPosition] = useState({ x: 29, y: 62 });
     const [dimensions, setDimensions] = useState({ width: 200, height: 'auto' });
     const startOffset = useRef({ x: 0, y: 0 });
@@ -17,6 +17,10 @@ const MovableTextBox = ({ isDeleted, setSelectState }) => {
     // Minimum and maximum dimensions for resizing
     const minSize = { width: 50, height: 50 };
     const maxSize = { width: 636, height: 614 };
+
+    useEffect(() => {
+        setText(startingText);
+    }, [startingText]);
 
     useEffect(() => {
         const handleMouseMove = (e) => {
@@ -60,7 +64,7 @@ const MovableTextBox = ({ isDeleted, setSelectState }) => {
         const handleClickOutside = (e) => {
             if (boxRef.current && !boxRef.current.contains(e.target)) {
                 const isSelected = false;
-                setSelectState([isDeleted, isSelected]);
+                setSelectState([isDeleted, isSelected, text]);
                 setSelected(isSelected);
             }
         };
@@ -98,7 +102,7 @@ const MovableTextBox = ({ isDeleted, setSelectState }) => {
         }
         const isSelected = true;
         setSelected(isSelected);
-        setSelectState([isDeleted, isSelected]);
+        setSelectState([isDeleted, isSelected, text]);
         e.preventDefault();
     };
 
@@ -169,6 +173,7 @@ const MovableTextBox = ({ isDeleted, setSelectState }) => {
 MovableTextBox.propTypes = {
     isDeleted: PropTypes.bool.isRequired,
     setSelectState: PropTypes.func.isRequired,
+    startingText: PropTypes.string.isRequired,
 };
 
 export default MovableTextBox;
