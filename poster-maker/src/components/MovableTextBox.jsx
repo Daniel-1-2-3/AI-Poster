@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-const MovableTextBox = ({ isDeleted, setSelectState, startingText }) => {
+const MovableTextBox = ({ isDeleted, setSelectState, startingText}) => {
     const [isTyping, setIsTyping] = useState(false);
     const [selected, setSelected] = useState(true);
     const [isDragging, setIsDragging] = useState(false);
@@ -64,7 +64,7 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText }) => {
         const handleClickOutside = (e) => {
             if (boxRef.current && !boxRef.current.contains(e.target)) {
                 const isSelected = false;
-                setSelectState([isDeleted, isSelected, text]);
+                setSelectState([isDeleted, isSelected, text, prompt]);
                 setSelected(isSelected);
             }
         };
@@ -102,7 +102,7 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText }) => {
         }
         const isSelected = true;
         setSelected(isSelected);
-        setSelectState([isDeleted, isSelected, text]);
+        setSelectState([isDeleted, isSelected, text, prompt]);
         e.preventDefault();
     };
 

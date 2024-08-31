@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types'
+import { generate } from './generate';
 
 const AddTextBox = ({textBoxes, setTextBoxes}) => {
   const [showFunctions, setShowFunctions] = useState(false)
-  const [GPTPrompt, setGPTPrompt] = useState('')
+  const [GPTPrompts, setGPTPrompts] = useState([])
 
   const expandTextBox = () => {
     const show = showFunctions
@@ -18,6 +19,9 @@ const AddTextBox = ({textBoxes, setTextBoxes}) => {
     const isSelected = true
     const text = ''
     setTextBoxes([...textBoxes, [isDeleted, isSelected, text]]);
+    const newPrompts = [...GPTPrompts]
+    newPrompts.push('')
+    setGPTPrompts(newPrompts)
     setShowFunctions(true)
   }
   const deleteTextBox = (idx) => {
@@ -27,10 +31,17 @@ const AddTextBox = ({textBoxes, setTextBoxes}) => {
   }
 
   const generateText = (idx) => {
-    const generatedText = 'This will be GPT generated text'
+    const generatedText = generate(GPTPrompts[idx])
+    console.log(generatedText)  
     const newTextBoxesList = [...textBoxes]
     newTextBoxesList[idx] = [false, textBoxes[idx][1], generatedText]
     setTextBoxes(newTextBoxesList)
+  }
+
+  const modifyGPTPrompts = (value, idx) => {
+    const newGPTPrompts = [...GPTPrompts]
+    newGPTPrompts[idx] = value
+    setGPTPrompts(newGPTPrompts)
   }
 
   return (
@@ -65,17 +76,17 @@ const AddTextBox = ({textBoxes, setTextBoxes}) => {
                       type="text"
                       id="prompt"
                       name="prompt"
-                      className="border rounded w-full py-2 px-3 mb-2"
+                      className="border rounded w-full mt-3 p-2 mb-2"
                       placeholder="Enter prompt to generate text"
                       required
-                      value={GPTPrompt}
-                      onChange={(e) => setGPTPrompt(e.target.value)}
+                      value={GPTPrompts[index]}
+                      onChange={(e) => modifyGPTPrompts(e.target.value, index)}
                     />
                     </div>
                     <button className='bg-green-400 w-3/4' onClick={() => generateText(index)}>
                       Generate
                     </button>
-                    
+
                     <button className="bg-red-100" onClick={() => deleteTextBox(index)}>
                       <p>Delete Box</p>
                       <p>{attributes[1]}</p>
