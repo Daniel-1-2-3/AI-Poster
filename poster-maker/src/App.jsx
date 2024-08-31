@@ -6,8 +6,9 @@ const App = () => {
   const [textBoxes, setTextBoxes] = useState([])
   //this one for handling selection 
   const handleSetTextBoxes = (index, newValues) => {
-    const newTextBoxes = [...textBoxes];
-    newTextBoxes[index] = newValues;
+    const newTextBoxes = textBoxes.map((attributes, i) => 
+      i === index ? newValues : [attributes[0], false, attributes[2]]
+    );
     setTextBoxes(newTextBoxes);
   };
   return (
@@ -18,6 +19,7 @@ const App = () => {
             //attribute[0] is isDeleted, attribute[1] is isSelected, attribute[2] is text
             <div key={index} >
               <MovableTextBox isDeleted={attributes[0]}
+                currentlySelected={attributes[1]}
                 setSelectState={(newValues) => handleSetTextBoxes(index, newValues)}
                 startingText={attributes[2]}
               />

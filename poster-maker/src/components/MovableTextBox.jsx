@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-const MovableTextBox = ({ isDeleted, setSelectState, startingText}) => {
+const MovableTextBox = ({ isDeleted, currentlySelected, setSelectState, startingText }) => {
     const [isTyping, setIsTyping] = useState(false);
-    const [selected, setSelected] = useState(true);
+    const [selected, setSelected] = useState(currentlySelected);
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
     const [text, setText] = useState(startingText);
@@ -14,7 +14,6 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText}) => {
     const boxRef = useRef(null);
     const textRef = useRef(null);
 
-    // Minimum and maximum dimensions for resizing
     const minSize = { width: 50, height: 50 };
     const maxSize = { width: 636, height: 614 };
 
@@ -28,15 +27,13 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText}) => {
                 const newX = e.clientX - startOffset.current.x;
                 const newY = e.clientY - startOffset.current.y;
 
-                // Boundary limits for movement
                 const boundary = {
                     left: 29,
                     top: 62,
-                    right: 665 - boxRef.current.offsetWidth,
-                    bottom: 675 - boxRef.current.offsetHeight
+                    right: window.innerWidth - boxRef.current.offsetWidth - 29,
+                    bottom: window.innerHeight - boxRef.current.offsetHeight - 62
                 };
 
-                // Restrict movement within boundary
                 const boundedX = Math.max(boundary.left, Math.min(newX, boundary.right));
                 const boundedY = Math.max(boundary.top, Math.min(newY, boundary.bottom));
 
@@ -62,10 +59,9 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText}) => {
         };
 
         const handleClickOutside = (e) => {
-            if (boxRef.current && !boxRef.current.contains(e.target)) {
-                const isSelected = false;
-                setSelectState([isDeleted, isSelected, text, prompt]);
-                setSelected(isSelected);
+            if (boxRef.current && !boxRef.current.contains(e.target) && selected) {
+                setSelected(false);
+                setSelectState([isDeleted, false, text]);
             }
         };
 
@@ -78,8 +74,7 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText}) => {
             window.removeEventListener('mouseup', handleMouseUp);
             window.removeEventListener('mousedown', handleClickOutside);
         };
-
-    }, [isDragging, isResizing, isDeleted, setSelectState]);
+    }, [isDragging, isResizing, selected, isDeleted, text, setSelectState]);
 
     const handleMouseDown = (e) => {
         if (e.target.classList.contains('resize-handle')) {
@@ -102,15 +97,14 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText}) => {
         }
         const isSelected = true;
         setSelected(isSelected);
-        setSelectState([isDeleted, isSelected, text, prompt]);
+        setSelectState([isDeleted, isSelected, text]);
         e.preventDefault();
     };
 
     useEffect(() => {
-        if (textRef.current) {
+        if (textRef.current && isTyping) {
             textRef.current.focus();
         }
-        setIsTyping(false);
     }, [isTyping]);
 
     const handleInput = (e) => {
@@ -149,9 +143,9 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText}) => {
     return (
         <div
             ref={boxRef}
-            className={`absolute p-3 bg-teal-200 text-gray-950 flex items-center justify-center cursor-pointer rounded-md z-10 border-dashed border-2 focus:border-gray-500 active:border-gray-500
+            className={`absolute p-3 bg-teal-200 text-gray-950 flex items-center justify-center cursor-pointer rounded-md border-2
             ${selected ? 'border-dashed border-gray-500' : 'border-transparent'}`}
-            style={{ left: `${position.x}px`, top: `${position.y}px`, width: `${dimensions.width}px`, height: dimensions.height }}
+            style={{ left: `${position.x}px`, top: `${position.y}px`, width: `${dimensions.width}px`, height: `${dimensions.height}px` }}
             onMouseDown={handleMouseDown}
         >
             <p
@@ -172,6 +166,7 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText}) => {
 
 MovableTextBox.propTypes = {
     isDeleted: PropTypes.bool.isRequired,
+    currentlySelected: PropTypes.bool.isRequired,
     setSelectState: PropTypes.func.isRequired,
     startingText: PropTypes.string.isRequired,
 };

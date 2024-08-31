@@ -46,7 +46,7 @@ const AddTextBox = ({textBoxes, setTextBoxes}) => {
 
   return (
     <div className="bg-blue-200 w-full text-center flex flex-col items-center justify-center">
-      <div className="flex">
+      <div className="flex border-b-4 w-full items-center justify-center">
         {showFunctions ? 
           <button onClick={expandTextBox}>
             <FontAwesomeIcon icon={faChevronUp} size="1x" className="text-gray-600 pr-4" />
@@ -67,30 +67,32 @@ const AddTextBox = ({textBoxes, setTextBoxes}) => {
             {textBoxes.map((attributes, index) => (
               <div key={index} >
                 {!attributes[0] &&
-                <div className="border-y-2 border-y-gray-200 w-full bg-white">
+                <div className="border-b-4 border-y-gray-200 w-full bg-gray-100">
                 
                   <p>{attributes[1]}</p>
                   <div className="flex flex-col justify-center items-center">
                     <div className="flex w-3/4">
-                    <input
-                      type="text"
-                      id="prompt"
-                      name="prompt"
-                      className="border rounded w-full mt-3 p-2 mb-2"
-                      placeholder="Enter prompt to generate text"
-                      required
-                      value={GPTPrompts[index]}
-                      onChange={(e) => modifyGPTPrompts(e.target.value, index)}
-                    />
+                      <input
+                        type="text"
+                        id="prompt"
+                        name="prompt"
+                        className="active:bg-gray-300 focus:bg-gray-300hover:bg-gray-300 shadow-sm rounded focus:outline-none bg-gray-200 w-full mt-2 p-3"
+                        placeholder="Enter prompt to generate text"
+                        required
+                        value={GPTPrompts[index]}
+                        onChange={(e) => modifyGPTPrompts(e.target.value, index)}
+                      />
                     </div>
-                    <button className='bg-green-400 w-3/4' onClick={() => generateText(index)}>
-                      Generate
-                    </button>
+                    <div className="flex py-1 w-3/4">
+                      <button className='font-mono font-semibold bg-green-300 w-3/4 mr-1 p-1 rounded-md shadow-lg hover:bg-green-400' onClick={() => generateText(index)}>
+                        Generate
+                      </button>
 
-                    <button className="bg-red-100" onClick={() => deleteTextBox(index)}>
-                      <p>Delete Box</p>
-                      <p>{attributes[1]}</p>
-                    </button>
+                      <button className="font-mono font-semibold bg-red-100 w-3/4 rounded-md shadow-lg hover:bg-red-200" onClick={() => deleteTextBox(index)}>
+                        <p>Delete Box</p>
+                        <p>{attributes[1]}</p>
+                      </button>
+                    </div>
                   </div>
                 </div>
                 }
