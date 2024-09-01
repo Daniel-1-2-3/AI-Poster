@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
+import OpenAI from 'openai';
 
 const AddImageBox = ({ images, setImages }) => {
   const [showFunctions, setShowFunctions] = useState(false);
@@ -18,24 +19,16 @@ const AddImageBox = ({ images, setImages }) => {
     const onCanvas = false;
     setImages([
       ...images,
-      [isDeleted, isSelected, [[null, onCanvas], [null, onCanvas], [null, onCanvas], [null, onCanvas], [null, onCanvas]]],
+      [isDeleted, isSelected, [[null, onCanvas], [null, onCanvas], [null, onCanvas], [null, onCanvas], [null, onCanvas], [null, onCanvas]]],
     ]);
     setShowFunctions(true);
     setImgPrompts([...imgPrompts, '']);
   };
 
-  const deleteImageBox = (idx) => {
-    const newImages = [...images];
-    const onCanvas = false;
-    newImages[idx] = [true, false, [[null, onCanvas], [null, onCanvas], [null, onCanvas], [null, onCanvas], [null, onCanvas]]];
-    setImages(newImages);
-  };
-
   const setCanvasState = (index, subindex) => {
     const newImages = [...images];
-    const imgsList = [...newImages[index][2]];
-    imgsList[subindex] = [imgsList[subindex][0], true];
-    newImages[index][2] = imgsList;
+    newImages[index][2][subindex]
+    newImages[index][2][subindex][1] = !newImages[index][2][subindex][1]
     setImages(newImages);
   };
 
@@ -43,6 +36,8 @@ const AddImageBox = ({ images, setImages }) => {
     const apiKey = 'VDuzvJ5vyuXWP3mBIR_HznhxpdQPESpdwZjuAJHtf4I'; // Replace with your Unsplash API key
     const numImages = 5; // Number of images to fetch
 
+    let list = []
+    //search for photos
     try {
       const response = await axios.get('https://api.unsplash.com/search/photos', {
         params: {
@@ -51,19 +46,42 @@ const AddImageBox = ({ images, setImages }) => {
           client_id: apiKey,
         },
       });
+      list = response.data.results.map((item) => item.urls.regular);
+    } catch (error) {
+      console.error('Error fetching images from Unsplash:', error);
+    }
+    //generate images
+    const openai = new OpenAI({
+      apiKey: 'sk-proj-PmRZheqLQuB191updPkNT3BlbkFJumzmIZDUSwa3pCanUONv',
+      dangerouslyAllowBrowser: true, 
+    });
+    async function generateImage(prompt) {
+      try {
+        const response = await openai.images.generate({
+          prompt: prompt,
+          n: 1, // Number of images to generate
+          size: '1024x1024', // Size of the generated image
+        });
+        
+        const imageUrl = response.data[0].url;
+        console.log('Generated Image URL:', imageUrl);
+        return imageUrl
+        
+      } catch (error) {
+        console.error('Error generating image:', error);
+      }
+    }
+    const prompt = `A realistic and visually appealing photo of ${imgPrompts[idx]}`;
+    const genImg = await generateImage(prompt);
 
-      const list = response.data.results.map((item) => item.urls.regular);
-      const newImages = [...images];
+    const newImages = [...images];
       const onCanvas = false;
       newImages[idx] = [
         images[idx][0],
         images[idx][1],
-        [[list[0], onCanvas], [list[1], onCanvas], [list[2], onCanvas], [list[3], onCanvas], [list[4], onCanvas]],
+        [[genImg, onCanvas], [list[0], onCanvas], [list[1], onCanvas], [list[3], onCanvas], [list[4], onCanvas]],
       ];
       setImages(newImages);
-    } catch (error) {
-      console.error('Error fetching images from Unsplash:', error);
-    }
   };
 
   const modifyImgPrompts = (value, idx) => {
@@ -84,7 +102,7 @@ const AddImageBox = ({ images, setImages }) => {
             />
           </button>
           <button onClick={addImageBox}>
-            <p className="font-bold p-4 bg-blue-200">Add Image Box</p>
+            <p className="font-bold p-4 bg-blue-200">Add Image Boxes</p>
           </button>
         </div>
       </div>
@@ -115,23 +133,17 @@ const AddImageBox = ({ images, setImages }) => {
                             Search
                           </button>
                         </div>
-                        <button
-                          className="font-mono font-semibold bg-red-100 px-4 py-2 ml-2 mt-2 rounded-md shadow-lg hover:bg-red-200"
-                          onClick={() => deleteImageBox(index)}
-                        >
-                          Delete Image
-                        </button>
                       </div>
                       <div className="flex overflow-x-auto">
                         {attributes[2].map((contents, subindex) => (
                           <div key={subindex} className="flex-shrink-0 mx-2">
                             <button onClick={() => setCanvasState(index, subindex)}>
-                              {(contents[0]) &&
-                              <img
-                                src={contents[0]}
-                                className="max-w-xs h-auto"
-                              />
-                              }
+                              {contents[0] && (
+                                <img
+                                  src={contents[0]}
+                                  className="max-w-xs h-auto"
+                                />
+                              )}
                             </button>
                           </div>
                         ))}

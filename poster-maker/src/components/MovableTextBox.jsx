@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, textColor, bgColor, startingCanvasRef }) => {
+const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, textColor, bgColor }) => {
     const [isTyping, setIsTyping] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
@@ -12,7 +12,6 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, tex
     const startSize = useRef({ width: 0, height: 0 });
     const boxRef = useRef(null);
     const textRef = useRef(null);
-    const canvasRef = useRef(startingCanvasRef)
 
     // Minimum and maximum dimensions for resizing
     const minSize = { width: 50, height: 50 };
@@ -63,12 +62,9 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, tex
         };
 
         const handleClickOutside = (e) => {
-            // Check if click was outside the text box but within the canvas
-            if (boxRef.current && !boxRef.current.contains(e.target) && canvasRef.current && canvasRef.current.contains(e.target)) {
-                // Update selection state to deselect the text box
-                console.log('deselected')
+            if (boxRef.current && !boxRef.current.contains(e.target)) {
                 const isSelected = false;
-                setSelectState([false, isSelected, text, textSize, textColor, bgColor]);
+                setSelectState([isDeleted, isSelected, text, textSize, textColor, bgColor]);
             }
         };
 
@@ -82,7 +78,7 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, tex
             window.removeEventListener('mousedown', handleClickOutside);
         };
 
-    }, [isDragging, isResizing, text, isDeleted, setSelectState]);
+    }, [isDragging, isResizing, isDeleted, setSelectState]);
 
     const handleMouseDown = (e) => {
         if (e.target.classList.contains('resize-handle')) {
@@ -104,7 +100,8 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, tex
             };
         }
         const isSelected = true;
-        setSelectState([false, isSelected, text, textSize, textColor, bgColor]);
+        setSelectState([isDeleted, isSelected, text, textSize, textColor, bgColor]);
+        moveCursor()
         e.preventDefault();
     };
 
@@ -116,24 +113,30 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, tex
     }, [isTyping]);
 
     const handleInput = (e) => {
+        // Get the current selection
         const selection = window.getSelection();
         const range = selection.getRangeAt(0);
         
+        // Update the text
         let newText = e.target.innerText;
         setText(newText);
         
+        // Save the current cursor position
         const cursorPosition = {
             node: range.startContainer,
             offset: range.startOffset
         };
         
+        // If resizing is needed
         if (textRef.current && boxRef.current) {
-            if (textRef.current.scrollHeight + 25 > boxRef.current.offsetWidth) {
-                const newHeight = textRef.current.scrollHeight + 25;
-                setDimensions(prev => ({ ...prev, height: newHeight }));
+            // Dynamically resize the text box based on content
+            const scrollHeight = textRef.current.scrollHeight;
+            if (scrollHeight + 30 > boxRef.current.offsetHeight) {
+                setDimensions(prev => ({ ...prev, height: scrollHeight + 30 }));
             }
         }
         
+        // Restore the cursor position after the update
         setTimeout(() => {
             if (textRef.current) {
                 const newRange = document.createRange();
@@ -142,20 +145,27 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, tex
                 selection.removeAllRanges();
                 selection.addRange(newRange);
             }
-        }, 0); 
+        }, 0); // Delay to ensure the text update is completed
     };
-    
-    const handleClick = () => {
-        const isSelected = true;
-        setSelectState([false, isSelected, text, textSize, textColor, bgColor]);
-    }
 
     const handleKeyDown = (event) => {
+        console.log(event.key)
         if (event.key === 'Enter') {
-            event.preventDefault(); 
+            event.preventDefault(); // Prevent default behavior
             const enteredText = `${text}\n`
             setText(enteredText)
         }
+    };
+
+    const moveCursor = (e) => {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        const p = e.target;
+
+        range.selectNodeContents(p);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
     };
 
     if (isDeleted) return null;
@@ -163,7 +173,7 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, tex
     return (
         <div
             ref={boxRef}
-            className={'absolute p-3 text-gray-950 flex border-transparent items-center justify-center cursor-pointer rounded-md z-10 border-dashed border-2 focus:border-gray-500 active:border-gray-500'}
+            className={'absolute p-3 text-gray-950 flex items-center justify-center cursor-pointer rounded-md z-10 border-dashed border-2 border-transparent hover:border-gray-400 active:border-gray-400'}
             style={{ left: `${position.x}px`, top: `${position.y}px`, width: `${dimensions.width}px`, height: dimensions.height, background: bgColor }}
             onMouseDown={handleMouseDown}
         >
@@ -174,8 +184,7 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, tex
                 suppressContentEditableWarning
                 onInput={handleInput}
                 onKeyDown={handleKeyDown}
-                onClick={handleClick}
-                style={{ fontSize: textSize, color: textColor }}
+                style={{fontSize: textSize, color: textColor}}
             >
                 {text}
             </span>
@@ -190,9 +199,8 @@ MovableTextBox.propTypes = {
     setSelectState: PropTypes.func.isRequired,
     startingText: PropTypes.string.isRequired,
     textSize: PropTypes.number.isRequired,
-    textColor: PropTypes.string.isRequired,
+    textColor: PropTypes.number.isRequired,
     bgColor: PropTypes.string.isRequired,
-    startingCanvasRef: PropTypes.object.isRequired,
 };
 
 export default MovableTextBox;

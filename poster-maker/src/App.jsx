@@ -45,7 +45,7 @@ const App = () => {
                   {attributes[2].map((image, subindex) => (
                     <div key={subindex}>
                       {image[1] &&
-                        <MovableImage image={image[0]} startingCanvasRef={canvasRef.current}/>
+                        <MovableImage image={image[0]}/>
                       }
                     </div>
                   ))}
