@@ -113,36 +113,39 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, tex
     }, [isTyping]);
 
     const handleInput = (e) => {
+        // Get the current selection
         const selection = window.getSelection();
-        const range = selection.getRangeAt(0); // Get current selection
-    
-        // Save current cursor position
-        const cursorPosition = {
-            nodeIndex: range.startContainer.nodeIndex || 0,
-            offset: range.startOffset || 0
-        };
-    
+        const range = selection.getRangeAt(0);
+        
         // Update the text
         let newText = e.target.innerText;
         setText(newText);
-    
-        // Check if resizing is needed
+        
+        // Save the current cursor position
+        const cursorPosition = {
+            node: range.startContainer,
+            offset: range.startOffset
+        };
+        
+        // If resizing is needed
         if (textRef.current && boxRef.current) {
-            if (textRef.current.scrollHeight + 60 > boxRef.current.offsetWidth) {
-                const newHeight = textRef.current.scrollHeight + 25;
-                setDimensions(prev => ({ ...prev, height: newHeight }));
+            // Dynamically resize the text box based on content
+            const scrollHeight = textRef.current.scrollHeight;
+            if (scrollHeight + 30 > boxRef.current.offsetHeight) {
+                setDimensions(prev => ({ ...prev, height: scrollHeight + 30 }));
             }
         }
-    
-        // Restore cursor position
+        
+        // Restore the cursor position after the update
         setTimeout(() => {
-            const textNode = textRef.current.childNodes[cursorPosition.nodeIndex] || textRef.current;
-            const newRange = document.createRange();
-            newRange.setStart(textNode, cursorPosition.offset);
-            newRange.collapse(true);
-            selection.removeAllRanges();
-            selection.addRange(newRange);
-        }, 0); // Use a timeout to ensure the text update is completed
+            if (textRef.current) {
+                const newRange = document.createRange();
+                newRange.setStart(cursorPosition.node, cursorPosition.offset);
+                newRange.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+            }
+        }, 0); // Delay to ensure the text update is completed
     };
 
     const handleKeyDown = (event) => {
@@ -170,7 +173,7 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, tex
     return (
         <div
             ref={boxRef}
-            className={'absolute p-3 text-gray-950 flex items-center justify-center cursor-pointer rounded-md z-10 border-dashed border-2 focus:border-gray-500 active:border-gray-500'}
+            className={'absolute p-3 text-gray-950 flex items-center justify-center cursor-pointer rounded-md z-10 border-dashed border-2 border-transparent hover:border-gray-400 active:border-gray-400'}
             style={{ left: `${position.x}px`, top: `${position.y}px`, width: `${dimensions.width}px`, height: dimensions.height, background: bgColor }}
             onMouseDown={handleMouseDown}
         >
