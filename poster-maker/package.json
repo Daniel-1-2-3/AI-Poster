@@ -11,6 +11,7 @@
     "server": "json-server --watch src/jobs.json --port 5000"
   },
   "dependencies": {
+    "@splinetool/react-spline": "^4.0.0",
     "openai": "^4.57.0",
     "playwright": "^1.46.1",
     "postcss-cli": "^11.0.0",

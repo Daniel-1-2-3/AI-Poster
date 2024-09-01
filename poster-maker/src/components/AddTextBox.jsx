@@ -219,9 +219,7 @@ const AddTextBox = ({ textBoxes, setTextBoxes }) => {
                             </div>
                           )}
                         </div>
-                        <div className="p-2" style={{ fontSize: `${textSizes[index]}px`, color: textColors[index], backgroundColor: bgColors[index] }}>
-                          {textBoxes[index][2]}
-                        </div>
+                        <div className="p-2" style={{ fontSize: `${textSizes[index]}px`, color: textColors[index], backgroundColor: bgColors[index] }}></div>
                       </div>
                       :
                       <div className="flex justify-center items-center p-4">

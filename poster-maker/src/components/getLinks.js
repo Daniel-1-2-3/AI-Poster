@@ -1,5 +1,5 @@
 export async function getLinks(query) {
-    const apiKey = '2b310ae0-67ce-11ef-9233-77e943c14913';
+    const apiKey = 'dea29610-688b-11ef-ba97-dff00c58ed62';
     const MisUrl = `https://app.zenserp.com/api/v2/search?q=${encodeURIComponent(query)}&apikey=${apiKey}`;
 
     const wikiUrl = `https://app.zenserp.com/api/v2/search?q=${encodeURIComponent(query)}&apikey=${apiKey}`;

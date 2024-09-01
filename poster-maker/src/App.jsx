@@ -46,7 +46,13 @@ const App = () => {
                   {attributes[2].map((image, subindex) => (
                     <div key={subindex}>
                       {image[1] &&
-                        <MovableImage image={image[0]}/>
+                        <>
+                          {subindex==3 ? 
+                            <MovableImage image={image[0]} inputy={300}/>
+                            :
+                            <MovableImage image={image[0]}/>
+                          }
+                        </>
                       }
                     </div>
                   ))}

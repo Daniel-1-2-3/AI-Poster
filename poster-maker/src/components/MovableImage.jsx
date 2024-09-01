@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-const MovableImage = ({ image, inputx=100, inputy=100}) => {
+const MovableImage = ({ image, inputx=350, inputy=90}) => {
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
     const [position, setPosition] = useState({ x: inputx, y: inputy });
