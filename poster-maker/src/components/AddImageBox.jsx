@@ -103,7 +103,7 @@ const AddImageBox = ({ images, setImages }) => {
           ></div>
         </div>
       )}
-      <div className="w-full max-w-4xl bg-blue-200 p-16 border-b-gray-300 border-b-4">
+      <div className="w-full max-w-4xl bg-blue-200 p-14 border-b-gray-300 border-b-8">
         <div className="flex w-full items-center justify-center px-4 py-2">
           <button onClick={expandImageBox}>
             <FontAwesomeIcon icon={showFunctions ? faChevronUp : faChevronDown} size="1x" className="text-gray-600" />
@@ -114,7 +114,7 @@ const AddImageBox = ({ images, setImages }) => {
         </div>
       </div>
       {showFunctions && (
-        <div className="w-full max-w-4xl p-4 overflow-x-auto">
+        <div className="w-full max-w-4xl overflow-x-auto">
           {images.map((attributes, index) => (
             <div key={index} className="border rounded-md p-4 bg-gray-50 shadow-md mb-4">
               {!attributes[0] && (

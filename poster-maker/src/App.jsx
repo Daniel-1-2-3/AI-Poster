@@ -2,6 +2,7 @@ import AddTextBox from "./components/AddTextBox";
 import MovableTextBox from "./components/MovableTextBox";
 import AddImageBox from './components/AddImageBox'
 import MovableImage from "./components/MovableImage";
+import bgimg from './components/bgimg.png'
 import { useState, useRef } from 'react'
 
 const App = () => {
@@ -55,9 +56,12 @@ const App = () => {
           ))}
         </div>
       </div>
-      <div className="flex flex-col w-1/2 bg-white overflow-y-auto overflow-x-hidden">
-        <AddTextBox textBoxes={textBoxes} setTextBoxes={setTextBoxes}/>
+      <div className='overflow-y-auto'>
+        <AddTextBox textBoxes={textBoxes} setTextBoxes={setTextBoxes} />
         <AddImageBox images={images} setImages={setImages} />
+        <div>
+          <img src={bgimg} alt="Background" className='opacity-75 h-96' />
+        </div>
       </div>
     </div>
   );

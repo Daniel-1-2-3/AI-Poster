@@ -130,7 +130,7 @@ const AddTextBox = ({ textBoxes, setTextBoxes }) => {
           ></div>
         </div>
       )}
-      <div className="w-full max-w-4xl bg-blue-200 p-16 border-b-gray-300 border-b-4">
+      <div className="w-full max-w-4xl bg-blue-200 p-14 border-b-gray-300 border-b-4">
         <div className="flex w-full items-center justify-center px-4 py-2">
           <button onClick={expandTextBox}>
             <FontAwesomeIcon icon={showFunctions ? faChevronUp : faChevronDown} size="1x" className="text-gray-600" />
@@ -144,7 +144,7 @@ const AddTextBox = ({ textBoxes, setTextBoxes }) => {
         {showFunctions &&
           <div className="space-y-4">
             {textBoxes.map((attributes, index) => (
-              <div key={index} className="border rounded-md p-4 bg-gray-50 shadow-md">
+              <div key={index} className="border rounded-md bg-gray-50 shadow-md px-4">
                 {!attributes[0] &&
                   <>
                     {textBoxes[index][1] ?
@@ -154,7 +154,7 @@ const AddTextBox = ({ textBoxes, setTextBoxes }) => {
                             type="text"
                             id="prompt"
                             name="prompt"
-                            className="border rounded-md p-2 bg-gray-200 focus:bg-gray-300 focus:outline-none"
+                            className="border rounded-md p-2 mt-2 bg-gray-200 focus:bg-gray-300 focus:outline-none"
                             placeholder="Enter prompt to generate text"
                             required
                             value={GPTPrompts[index]}
