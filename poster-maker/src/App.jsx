@@ -9,11 +9,15 @@ const App = () => {
   //this one for handling selection 
   const handleSetTextBoxes = (index, newState) => {
     setTextBoxes(prevState => {
-        const updatedState = [...prevState];
-        updatedState[index] = newState;
-        return updatedState;
+        // Create a new array where every text box has [1] set to false
+        const resetState = prevState.map(item => [item[0], false, item[2], item[3], item[4], item[5]]);
+
+        // Update the specific index with the new state
+        resetState[index] = newState;
+
+        return resetState;
     });
-};
+  };
   
   return (
     <div className="h-screen bg-gray-200 flex overflow-hidden">
