@@ -38,6 +38,16 @@ const AddTextBox = ({ textBoxes, setTextBoxes }) => {
     setShowFunctions(true);
   };
 
+  const addImageToCanvas = (idx, url) => {
+    const newTextBoxes = [...textBoxes];
+    newTextBoxes[idx] = [
+      newTextBoxes[idx][0],
+      newTextBoxes[idx][1],
+      <img key={idx} src={url} alt="Canvas Image" className="w-auto h-32" />
+    ];
+    setTextBoxes(newTextBoxes);
+  };
+
   const deleteTextBox = (idx) => {
     const newTextBoxesList = [...textBoxes];
     newTextBoxesList[idx] = [true, textBoxes[idx][1], ''];
@@ -168,7 +178,7 @@ const AddTextBox = ({ textBoxes, setTextBoxes }) => {
                           <span className="ml-2 mt-2 mr-2">Text</span>
                         </div>
                         <button
-                          className='font-mono font-semibold bg-green-300 px-9 py-2 mr-1 p-1 mt-2 rounded-md shadow-lg hover:bg-green-400'
+                          className='font-mono font-semibold bg-green-300 px-9 py-2 mr-1 p-1 mr-4 mt-2 rounded-md shadow-lg hover:bg-green-400'
                           onClick={() => generateText(index)}
                         >
                           Generate
@@ -181,13 +191,14 @@ const AddTextBox = ({ textBoxes, setTextBoxes }) => {
                           <p>{attributes[1]}</p>
                         </button>
                       </div>
-                      <div className="w-full mt-2 flex flex-wrap overflow-hidden mr-8 justify-center">
+                      <div className="w-full mt-2 flex flex-wrap overflow-hidden mr-8 justify-center pb-4">
                         {imageUrls[index] && imageUrls[index].map((url, imgIdx) => (
                           <img
                             key={imgIdx}
                             src={url}
                             alt={`Generated Image ${imgIdx + 1}`}
-                            className="w-auto h-32 mt-2 ml-4"
+                            className="w-auto h-32 mt-2 ml-4 hover:brightness-50"
+                            onClick={() => addImageToCanvas(index, url)}
                           />
                         ))}
                       </div>
