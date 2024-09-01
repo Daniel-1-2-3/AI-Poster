@@ -5,8 +5,7 @@ const MovableImage = ({ image }) => {
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
     const [position, setPosition] = useState({ x: 100, y: 100 });
-    const [dimensions, setDimensions] = useState({ width: 200, height: 150 });
-    const [aspectRatio, setAspectRatio] = useState(4 / 3); // Default aspect ratio
+    const [dimensions, setDimensions] = useState({ width: 200, height: 150 }); // Default dimensions
     const startOffset = useRef({ x: 0, y: 0 });
     const startSize = useRef({ width: 0, height: 0 });
     const boxRef = useRef(null);
@@ -19,9 +18,24 @@ const MovableImage = ({ image }) => {
     useEffect(() => {
         const img = imageRef.current;
         if (img) {
-            const naturalWidth = img.naturalWidth;
-            const naturalHeight = img.naturalHeight;
-            setAspectRatio(naturalWidth / naturalHeight);
+            const handleImageLoad = () => {
+                const naturalWidth = img.naturalWidth;
+                const naturalHeight = img.naturalHeight;
+                const aspectRatio = naturalWidth / naturalHeight;
+
+                // Start with dimensions that maintain the image's aspect ratio
+                const initialWidth = 200; // You can adjust this starting width
+                const initialHeight = initialWidth / aspectRatio;
+
+                setDimensions({ width: initialWidth, height: initialHeight });
+            };
+
+            if (img.complete) {
+                handleImageLoad();
+            } else {
+                img.addEventListener('load', handleImageLoad);
+                return () => img.removeEventListener('load', handleImageLoad);
+            }
         }
     }, [image]);
 
@@ -36,7 +50,7 @@ const MovableImage = ({ image }) => {
                     left: 29,
                     top: 62,
                     right: 665 - boxRef.current.offsetWidth,
-                    bottom: 675 - boxRef.current.offsetHeight
+                    bottom: 675 - boxRef.current.offsetHeight,
                 };
 
                 // Restrict movement within boundary
@@ -44,27 +58,19 @@ const MovableImage = ({ image }) => {
                 const boundedY = Math.max(boundary.top, Math.min(newY, boundary.bottom));
 
                 setPosition({ x: boundedX, y: boundedY });
-
             } else if (isResizing) {
                 const boxRect = boxRef.current.getBoundingClientRect();
                 const mouseX = e.clientX - boxRect.left;
                 const mouseY = e.clientY - boxRect.top;
 
-                let newWidth = Math.max(
+                const newWidth = Math.max(
                     Math.min(mouseX, maxSize.width),
                     minSize.width
                 );
-                let newHeight = Math.max(
+                const newHeight = Math.max(
                     Math.min(mouseY, maxSize.height),
                     minSize.height
                 );
-
-                // Maintain aspect ratio
-                if (newWidth / newHeight > aspectRatio) {
-                    newWidth = newHeight * aspectRatio;
-                } else {
-                    newHeight = newWidth / aspectRatio;
-                }
 
                 setDimensions({ width: newWidth, height: newHeight });
             }
@@ -82,8 +88,7 @@ const MovableImage = ({ image }) => {
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mouseup', handleMouseUp);
         };
-
-    }, [isDragging, isResizing, aspectRatio]);
+    }, [isDragging, isResizing]);
 
     const handleMouseDown = (e) => {
         if (e.target.classList.contains('resize-handle')) {
@@ -96,7 +101,7 @@ const MovableImage = ({ image }) => {
             setIsDragging(true);
             startOffset.current = {
                 x: e.clientX - position.x,
-                y: e.clientY - position.y
+                y: e.clientY - position.y,
             };
         }
         e.preventDefault();
@@ -105,19 +110,23 @@ const MovableImage = ({ image }) => {
     return (
         <div
             ref={boxRef}
-            className={'absolute text-gray-950 border-transparent items-center justify-center cursor-pointer z-10 border-dashed border-2 focus:border-gray-500 active:border-gray-500'}
-            style={{ left: `${position.x}px`, top: `${position.y}px`, width: `${dimensions.width}px`, height: `${dimensions.height}px` }}
+            className="absolute text-gray-950 border-transparent items-center justify-center cursor-pointer z-10 border-dashed border-2 focus:border-gray-500 active:border-gray-500"
+            style={{
+                left: `${position.x}px`,
+                top: `${position.y}px`,
+                width: `${dimensions.width}px`,
+                height: `${dimensions.height}px`,
+                overflow: 'hidden', // Crop the image when div is resized
+            }}
             onMouseDown={handleMouseDown}
         >
             <img
                 ref={imageRef}
                 src={image}
                 alt="Movable"
-                className="w-full h-full object-fill rounded-md"
+                className="object-cover w-full h-full rounded-md"
             />
-            <div className="resize-handle absolute bottom-0 right-0 w-3 h-3 cursor-se-resize border-b-4 border-b-transparent border-r-4 border-r-transparent
-              hover:border-b-gray-400 active:border-b-gray-400 rounded-br-md hover:border-r-gray-400 active:border-r-gray-400">
-            </div>
+            <div className="resize-handle absolute bottom-0 right-0 w-3 h-3 cursor-se-resize border-b-4 border-b-transparent border-r-4 border-r-transparent hover:border-b-gray-400 active:border-b-gray-400 rounded-br-md hover:border-r-gray-400 active:border-r-gray-400"></div>
         </div>
     );
 };

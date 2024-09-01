@@ -12,6 +12,7 @@ const AddTextBox = ({ textBoxes, setTextBoxes }) => {
   const [textSizes, setTextSizes] = useState([]);
   const [bgColors, setBgColors] = useState([]);
   const [textColors, setTextColors] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const expandTextBox = () => {
     setShowFunctions(!showFunctions);
@@ -45,6 +46,7 @@ const AddTextBox = ({ textBoxes, setTextBoxes }) => {
   };
 
   const generateText = async (idx) => {
+    setLoading(true)
     console.log(GPTPrompts[idx])
     const generatedLinks = await getLinks(GPTPrompts[idx])
     const newLinks = [...links]
@@ -55,6 +57,7 @@ const AddTextBox = ({ textBoxes, setTextBoxes }) => {
     const newTextBoxesList = [...textBoxes];
     newTextBoxesList[idx] = [false, true, generatedText, textBoxes[idx][3], textBoxes[idx][4], textBoxes[idx][5]];
     setTextBoxes(newTextBoxesList);
+    setLoading(false)
   };
 
   const modifyGPTPrompts = (value, idx) => {
@@ -104,6 +107,29 @@ const AddTextBox = ({ textBoxes, setTextBoxes }) => {
 
   return (
     <div className="bg-white w-full text-center flex flex-col items-center justify-center">
+      {loading && (
+        <div 
+          className="absolute inset-0 flex items-center justify-center bg-gray-100 opacity-75 z-50"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#f3f4f6', // Equivalent to bg-gray-100
+            opacity: 0.75,
+          }}
+        >
+          <div 
+            style={{
+              border: '4px solid #e5e7eb', // Equivalent to border-gray-200
+              borderTop: '4px solid #4b5563', // Equivalent to border-t-gray-600
+              borderRadius: '50%',
+              width: '3rem', // Equivalent to h-12 and w-12
+              height: '3rem',
+              animation: 'spin 1s linear infinite',
+            }}
+          ></div>
+        </div>
+      )}
       <div className="w-full bg-blue-200">
         <div className="flex border-b-4 border-gray-300 w-full items-center justify-center">
           {showFunctions ?

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, textColor, bgColor }) => {
+const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, textColor, bgColor, startingCanvasRef }) => {
     const [isTyping, setIsTyping] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
@@ -12,6 +12,7 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, tex
     const startSize = useRef({ width: 0, height: 0 });
     const boxRef = useRef(null);
     const textRef = useRef(null);
+    const canvasRef = useRef(startingCanvasRef)
 
     // Minimum and maximum dimensions for resizing
     const minSize = { width: 50, height: 50 };
@@ -62,7 +63,7 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, tex
         };
 
         const handleClickOutside = (e) => {
-            if (boxRef.current && !boxRef.current.contains(e.target)) {
+            if (boxRef.current && !boxRef.current.contains(e.target) && canvasRef.current.contains(e.target)) {
                 const isSelected = false;
                 setSelectState([isDeleted, isSelected, text, textSize, textColor, bgColor]);
             }
@@ -154,6 +155,7 @@ const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, tex
             event.preventDefault(); // Prevent default behavior
             const enteredText = `${text}\n`
             setText(enteredText)
+            moveCursor(event)
         }
     };
 
@@ -201,6 +203,7 @@ MovableTextBox.propTypes = {
     textSize: PropTypes.number.isRequired,
     textColor: PropTypes.number.isRequired,
     bgColor: PropTypes.string.isRequired,
+    startingCanvasRef: PropTypes.object.isRequired,
 };
 
 export default MovableTextBox;

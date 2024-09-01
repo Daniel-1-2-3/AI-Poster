@@ -8,6 +8,7 @@ import OpenAI from 'openai';
 const AddImageBox = ({ images, setImages }) => {
   const [showFunctions, setShowFunctions] = useState(false);
   const [imgPrompts, setImgPrompts] = useState([]);
+  const [loading, setLoading] = useState(false)
 
   const expandImageBox = () => {
     setShowFunctions(!showFunctions);
@@ -33,6 +34,7 @@ const AddImageBox = ({ images, setImages }) => {
   };
 
   const generateImg = async (idx) => {
+    setLoading(true)
     const apiKey = 'VDuzvJ5vyuXWP3mBIR_HznhxpdQPESpdwZjuAJHtf4I'; // Replace with your Unsplash API key
     const numImages = 5; // Number of images to fetch
 
@@ -81,6 +83,7 @@ const AddImageBox = ({ images, setImages }) => {
         images[idx][1],
         [[genImg, onCanvas], [list[0], onCanvas], [list[1], onCanvas], [list[3], onCanvas], [list[4], onCanvas]],
       ];
+      setLoading(false)
       setImages(newImages);
   };
 
@@ -92,6 +95,29 @@ const AddImageBox = ({ images, setImages }) => {
 
   return (
     <div className="bg-white w-full text-center flex flex-col items-center justify-center">
+      {loading && (
+        <div 
+          className="absolute inset-0 flex items-center justify-center bg-gray-100 opacity-75 z-50"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#f3f4f6', // Equivalent to bg-gray-100
+            opacity: 0.75,
+          }}
+        >
+          <div 
+            style={{
+              border: '4px solid #e5e7eb', // Equivalent to border-gray-200
+              borderTop: '4px solid #4b5563', // Equivalent to border-t-gray-600
+              borderRadius: '50%',
+              width: '3rem', // Equivalent to h-12 and w-12
+              height: '3rem',
+              animation: 'spin 1s linear infinite',
+            }}
+          ></div>
+        </div>
+      )}
       <div className="w-full flex flex-col bg-blue-200">
         <div className="flex border-b-4 border-gray-300 w-full items-center justify-center">
           <button onClick={expandImageBox}>
