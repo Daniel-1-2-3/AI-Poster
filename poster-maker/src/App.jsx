@@ -1,9 +1,12 @@
 import AddTextBox from "./components/AddTextBox";
 import MovableTextBox from "./components/MovableTextBox";
+import AddImageBox from './components/AddImageBox'
+import MovableImage from "./components/MovableImage";
 import { useState, useRef } from 'react'
 
 const App = () => {
   const [textBoxes, setTextBoxes] = useState([])
+  const [images, setImages] = useState([])
   const canvasRef = useRef(null)
 
   //this one for handling selection 
@@ -34,10 +37,27 @@ const App = () => {
               />
             </div>
           ))}
+          {images.map((attributes, index) => (
+            //[0] is isDeleted, [1] is isSelected, [2] is a list of images
+            <div key={index}>
+              {!attributes[0] &&
+                <div>
+                  {attributes[2].map((image, subindex) => (
+                    <div key={subindex}>
+                      {image[1] &&
+                        <MovableImage image={image[0]} startingCanvasRef={canvasRef.current}/>
+                      }
+                    </div>
+                  ))}
+                </div>
+              }
+            </div>
+          ))}
         </div>
       </div>
-      <div className="flex flex-col w-1/2 bg-white overflow-y-scroll">
+      <div className="flex flex-col w-1/2 bg-white overflow-y-auto overflow-x-hidden">
         <AddTextBox textBoxes={textBoxes} setTextBoxes={setTextBoxes}/>
+        <AddImageBox images={images} setImages={setImages} />
       </div>
     </div>
   );

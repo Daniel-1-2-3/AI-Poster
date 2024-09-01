@@ -125,7 +125,6 @@ const AddTextBox = ({ textBoxes, setTextBoxes }) => {
           <div className="w-full">
             {textBoxes.map((attributes, index) => (
               <div key={index}>
-                <p>{attributes[1] ? 'selected' : 'deselected'}</p>
                 {!attributes[0] &&
                   <>
                   {textBoxes[index][1] ?
