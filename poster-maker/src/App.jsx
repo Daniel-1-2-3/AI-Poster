@@ -6,11 +6,11 @@ const App = () => {
   const [textBoxes, setTextBoxes] = useState([])
   //this one for handling selection 
   const handleSetTextBoxes = (index, newValues) => {
-    const newTextBoxes = textBoxes.map((attributes, i) => 
-      i === index ? newValues : [attributes[0], false, attributes[2]]
-    );
+    const newTextBoxes = [...textBoxes]
+    newTextBoxes[index] = newValues
     setTextBoxes(newTextBoxes);
   };
+  
   return (
     <div className="h-screen bg-gray-200 flex overflow-hidden">
       <div className="flex w-1/2 justify-center items-center">
@@ -21,7 +21,8 @@ const App = () => {
               <MovableTextBox isDeleted={attributes[0]}
                 currentlySelected={attributes[1]}
                 setSelectState={(newValues) => handleSetTextBoxes(index, newValues)}
-                startingText={attributes[2]}
+                startingText={attributes[2]} textSize={attributes[3]} textColor={attributes[4]}
+                bgColor={attributes[5]}
               />
             </div>
           ))}

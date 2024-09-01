@@ -1,19 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-const MovableTextBox = ({ isDeleted, currentlySelected, setSelectState, startingText }) => {
+const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, textColor, bgColor }) => {
     const [isTyping, setIsTyping] = useState(false);
-    const [selected, setSelected] = useState(currentlySelected);
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
     const [text, setText] = useState(startingText);
     const [position, setPosition] = useState({ x: 29, y: 62 });
-    const [dimensions, setDimensions] = useState({ width: 200, height: 'auto' });
+    const [dimensions, setDimensions] = useState({ width: 400, height: 'auto' });
     const startOffset = useRef({ x: 0, y: 0 });
     const startSize = useRef({ width: 0, height: 0 });
     const boxRef = useRef(null);
     const textRef = useRef(null);
 
+    // Minimum and maximum dimensions for resizing
     const minSize = { width: 50, height: 50 };
     const maxSize = { width: 636, height: 614 };
 
@@ -26,29 +26,32 @@ const MovableTextBox = ({ isDeleted, currentlySelected, setSelectState, starting
             if (isDragging) {
                 const newX = e.clientX - startOffset.current.x;
                 const newY = e.clientY - startOffset.current.y;
-
+        
+                // Boundary limits for movement
                 const boundary = {
                     left: 29,
                     top: 62,
-                    right: window.innerWidth - boxRef.current.offsetWidth - 29,
-                    bottom: window.innerHeight - boxRef.current.offsetHeight - 62
+                    right: 665 - boxRef.current.offsetWidth,
+                    bottom: 675 - boxRef.current.offsetHeight
                 };
-
+        
+                // Restrict movement within boundary
                 const boundedX = Math.max(boundary.left, Math.min(newX, boundary.right));
                 const boundedY = Math.max(boundary.top, Math.min(newY, boundary.bottom));
-
+        
                 setPosition({ x: boundedX, y: boundedY });
-
+        
             } else if (isResizing) {
+                const boxRect = boxRef.current.getBoundingClientRect();
                 const newWidth = Math.max(
-                    Math.min(e.clientX - boxRef.current.getBoundingClientRect().left, maxSize.width),
+                    Math.min(e.clientX - boxRect.left, maxSize.width),
                     minSize.width
                 );
                 const newHeight = Math.max(
-                    Math.min(e.clientY - boxRef.current.getBoundingClientRect().top, maxSize.height),
+                    Math.min(e.clientY - boxRect.top, maxSize.height),
                     minSize.height
                 );
-
+        
                 setDimensions({ width: newWidth, height: newHeight });
             }
         };
@@ -59,9 +62,9 @@ const MovableTextBox = ({ isDeleted, currentlySelected, setSelectState, starting
         };
 
         const handleClickOutside = (e) => {
-            if (boxRef.current && !boxRef.current.contains(e.target) && selected) {
-                setSelected(false);
-                setSelectState([isDeleted, false, text]);
+            if (boxRef.current && !boxRef.current.contains(e.target)) {
+                const isSelected = false;
+                setSelectState([isDeleted, isSelected, text, textSize, textColor, bgColor]);
             }
         };
 
@@ -74,7 +77,8 @@ const MovableTextBox = ({ isDeleted, currentlySelected, setSelectState, starting
             window.removeEventListener('mouseup', handleMouseUp);
             window.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [isDragging, isResizing, selected, isDeleted, text, setSelectState]);
+
+    }, [isDragging, isResizing, isDeleted, setSelectState]);
 
     const handleMouseDown = (e) => {
         if (e.target.classList.contains('resize-handle')) {
@@ -84,7 +88,7 @@ const MovableTextBox = ({ isDeleted, currentlySelected, setSelectState, starting
                 width: boxRef.current.offsetWidth,
                 height: boxRef.current.offsetHeight,
             };
-        } else if (e.target.tagName === 'P') {
+        } else if (e.target.tagName === 'SPAN') {
             e.stopPropagation();
             setIsTyping(true);
         } else {
@@ -96,35 +100,58 @@ const MovableTextBox = ({ isDeleted, currentlySelected, setSelectState, starting
             };
         }
         const isSelected = true;
-        setSelected(isSelected);
-        setSelectState([isDeleted, isSelected, text]);
+        setSelectState([isDeleted, isSelected, text, textSize, textColor, bgColor]);
+        moveCursor()
         e.preventDefault();
     };
 
     useEffect(() => {
-        if (textRef.current && isTyping) {
+        if (textRef.current) {
             textRef.current.focus();
         }
+        setIsTyping(false);
     }, [isTyping]);
 
     const handleInput = (e) => {
-        setText(e.target.innerText);
-
+        const selection = window.getSelection();
+        const range = selection.getRangeAt(0); // Get current selection
+    
+        // Save current cursor position
+        const cursorPosition = {
+            nodeIndex: range.startContainer.nodeIndex || 0,
+            offset: range.startOffset || 0
+        };
+    
+        // Update the text
+        let newText = e.target.innerText;
+        setText(newText);
+    
+        // Check if resizing is needed
         if (textRef.current && boxRef.current) {
             if (textRef.current.scrollHeight + 60 > boxRef.current.offsetWidth) {
                 const newHeight = textRef.current.scrollHeight + 25;
                 setDimensions(prev => ({ ...prev, height: newHeight }));
             }
         }
+    
+        // Restore cursor position
+        setTimeout(() => {
+            const textNode = textRef.current.childNodes[cursorPosition.nodeIndex] || textRef.current;
+            const newRange = document.createRange();
+            newRange.setStart(textNode, cursorPosition.offset);
+            newRange.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+        }, 0); // Use a timeout to ensure the text update is completed
+    };
 
-        const selection = window.getSelection();
-        const range = document.createRange();
-        const p = e.target;
-
-        range.selectNodeContents(p);
-        range.collapse(false);
-        selection.removeAllRanges();
-        selection.addRange(range);
+    const handleKeyDown = (event) => {
+        console.log(event.key)
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Prevent default behavior
+            const enteredText = `${text}\n`
+            setText(enteredText)
+        }
     };
 
     const moveCursor = (e) => {
@@ -143,21 +170,21 @@ const MovableTextBox = ({ isDeleted, currentlySelected, setSelectState, starting
     return (
         <div
             ref={boxRef}
-            className={`absolute p-3 bg-teal-200 text-gray-950 flex items-center justify-center cursor-pointer rounded-md border-2
-            ${selected ? 'border-dashed border-gray-500' : 'border-transparent'}`}
-            style={{ left: `${position.x}px`, top: `${position.y}px`, width: `${dimensions.width}px`, height: `${dimensions.height}px` }}
+            className={'absolute p-3 text-gray-950 flex items-center justify-center cursor-pointer rounded-md z-10 border-dashed border-2 focus:border-gray-500 active:border-gray-500'}
+            style={{ left: `${position.x}px`, top: `${position.y}px`, width: `${dimensions.width}px`, height: dimensions.height, background: bgColor }}
             onMouseDown={handleMouseDown}
         >
-            <p
+            <span
                 ref={textRef}
-                className="w-full h-full mx-2 border-2 border-transparent rounded-s-sm focus:outline-none hover:border-gray-100 focus:border-gray-100 cursor-text"
+                className="w-full h-full mx-2 border-2 border-transparent rounded-s-sm focus:outline-none hover:border-gray-100 focus:border-gray-100 cursor-text whitespace-pre-line"
                 contentEditable
                 suppressContentEditableWarning
                 onInput={handleInput}
-                onClick={moveCursor}
+                onKeyDown={handleKeyDown}
+                style={{fontSize: textSize, color: textColor}}
             >
                 {text}
-            </p>
+            </span>
             <div className="resize-handle absolute bottom-0 right-0 w-3 h-3 cursor-se-resize border-b-4 border-b-transparent border-r-4 border-r-transparent
             hover:border-b-gray-400 active:border-b-gray-400 rounded-br-md hover:border-r-gray-400 active:border-r-gray-400"></div>
         </div>
@@ -166,9 +193,11 @@ const MovableTextBox = ({ isDeleted, currentlySelected, setSelectState, starting
 
 MovableTextBox.propTypes = {
     isDeleted: PropTypes.bool.isRequired,
-    currentlySelected: PropTypes.bool.isRequired,
     setSelectState: PropTypes.func.isRequired,
     startingText: PropTypes.string.isRequired,
+    textSize: PropTypes.number.isRequired,
+    textColor: PropTypes.number.isRequired,
+    bgColor: PropTypes.string.isRequired,
 };
 
 export default MovableTextBox;
