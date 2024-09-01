@@ -1,222 +1,196 @@
-import { useState, useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
+import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { generate } from './generate';
-import axios from 'axios';
 
-const AddTextBox = ({ textBoxes, setTextBoxes }) => {
-  const [showFunctions, setShowFunctions] = useState(false);
-  const [GPTPrompts, setGPTPrompts] = useState([]);
-  const [fontSizes, setFontSizes] = useState([]);
-  const [bgColors, setBgColors] = useState([]);
-  const [textColors, setTextColors] = useState([]);
-  const [imageUrls, setImageUrls] = useState([]);
+const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, textColor, bgColor, canvasRef }) => {
+    const [isTyping, setIsTyping] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
+    const [isResizing, setIsResizing] = useState(false);
+    const [text, setText] = useState(startingText);
+    const [position, setPosition] = useState({ x: 29, y: 62 });
+    const [dimensions, setDimensions] = useState({ width: 400, height: 'auto' });
+    const startOffset = useRef({ x: 0, y: 0 });
+    const startSize = useRef({ width: 0, height: 0 });
+    const boxRef = useRef(null);
+    const textRef = useRef(null);
 
-  useEffect(() => {
-    // Initialize fontSizes, bgColors, textColors, and imageUrls based on textBoxes
-    setFontSizes(textBoxes.map(() => 16));
-    setBgColors(textBoxes.map(() => '#ffffff'));
-    setTextColors(textBoxes.map(() => '#000000'));
-    setImageUrls(textBoxes.map(() => []));
-  }, [textBoxes]);
+    // Minimum and maximum dimensions for resizing
+    const minSize = { width: 50, height: 50 };
+    const maxSize = { width: 636, height: 614 };
 
-  const expandTextBox = () => {
-    setShowFunctions(!showFunctions);
-  };
+    useEffect(() => {
+        setText(startingText);
+    }, [startingText]);
 
-  const addTextBox = () => {
-    const isDeleted = false;
-    const isSelected = true;
-    const text = '';
-    setTextBoxes([...textBoxes, [isDeleted, isSelected, text]]);
-    setGPTPrompts([...GPTPrompts, '']);
-    setFontSizes([...fontSizes, 16]); // Add default font size
-    setBgColors([...bgColors, '#ffffff']); // Add default background color
-    setTextColors([...textColors, '#000000']); // Add default text color
-    setImageUrls([...imageUrls, []]); // Add default empty image URLs
-    setShowFunctions(true);
-  };
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            if (isDragging) {
+                const newX = e.clientX - startOffset.current.x;
+                const newY = e.clientY - startOffset.current.y;
+        
+                // Boundary limits for movement
+                const boundary = {
+                    left: 29,
+                    top: 62,
+                    right: 665 - boxRef.current.offsetWidth,
+                    bottom: 675 - boxRef.current.offsetHeight
+                };
+        
+                // Restrict movement within boundary
+                const boundedX = Math.max(boundary.left, Math.min(newX, boundary.right));
+                const boundedY = Math.max(boundary.top, Math.min(newY, boundary.bottom));
+        
+                setPosition({ x: boundedX, y: boundedY });
+        
+            } else if (isResizing) {
+                const boxRect = boxRef.current.getBoundingClientRect();
+                const newWidth = Math.max(
+                    Math.min(e.clientX - boxRect.left, maxSize.width),
+                    minSize.width
+                );
+                const newHeight = Math.max(
+                    Math.min(e.clientY - boxRect.top, maxSize.height),
+                    minSize.height
+                );
+        
+                setDimensions({ width: newWidth, height: newHeight });
+            }
+        };
 
-  const addImageToCanvas = (idx, url) => {
-    const newTextBoxes = [...textBoxes];
-    newTextBoxes[idx] = [
-      newTextBoxes[idx][0],
-      newTextBoxes[idx][1],
-      <img key={idx} src={url} alt="Canvas Image" className="w-auto h-32" />
-    ];
-    setTextBoxes(newTextBoxes);
-  };
+        const handleMouseUp = () => {
+            setIsDragging(false);
+            setIsResizing(false);
+        };
 
-  const deleteTextBox = (idx) => {
-    const newTextBoxesList = [...textBoxes];
-    newTextBoxesList[idx] = [true, textBoxes[idx][1], ''];
-    setTextBoxes(newTextBoxesList);
-  };
+        const handleClickOutside = (e) => {
+            // Check if click was outside the text box but within the canvas
+            if (boxRef.current && !boxRef.current.contains(e.target) && canvasRef && canvasRef.contains(e.target)) {
+                // Update selection state to deselect the text box
+                const isSelected = false;
+                setSelectState([false, isSelected, text, textSize, textColor, bgColor]);
+            }
+        };
 
-  const generateText = async (idx) => {
-    const generatedText = await generate(GPTPrompts[idx]);
-    const newTextBoxesList = [...textBoxes];
-    newTextBoxesList[idx] = [false, textBoxes[idx][1], generatedText];
-    setTextBoxes(newTextBoxesList);
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+        window.addEventListener('mousedown', handleClickOutside);
 
-    const images = await fetchUnsplashImages(GPTPrompts[idx]);
-    setImageUrls((prevImageUrls) => {
-      const newImageUrls = [...prevImageUrls];
-      newImageUrls[idx] = images;
-      return newImageUrls;
-    });
-  };
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+            window.removeEventListener('mousedown', handleClickOutside);
+        };
 
-  const modifyGPTPrompts = (value, idx) => {
-    const newGPTPrompts = [...GPTPrompts];
-    newGPTPrompts[idx] = value;
-    setGPTPrompts(newGPTPrompts);
-  };
+    }, [isDragging, isResizing, text, isDeleted, setSelectState]);
 
-  const handleFontSizeChange = (idx, value) => {
-    const newFontSizes = [...fontSizes];
-    const size = parseInt(value, 10);
-    if (!isNaN(size) && size >= 8) {
-      newFontSizes[idx] = size;
-      setFontSizes(newFontSizes);
-    }
-  };
-
-  const handleColorChange = (idx, colorType, color) => {
-    const updateColors = colorType === 'bg' ? setBgColors : setTextColors;
-    const newColors = [...(colorType === 'bg' ? bgColors : textColors)];
-    newColors[idx] = color;
-    updateColors(newColors);
-  };
-
-  const fetchUnsplashImages = async (query) => {
-    const apiKey = 'VDuzvJ5vyuXWP3mBIR_HznhxpdQPESpdwZjuAJHtf4I'; // Replace with your Unsplash API key
-    const numImages = 3; // Number of images to fetch
-
-    try {
-      const response = await axios.get('https://api.unsplash.com/search/photos', {
-        params: {
-          query: query,
-          per_page: numImages,
-          client_id: apiKey
+    const handleMouseDown = (e) => {
+        if (e.target.classList.contains('resize-handle')) {
+            setIsTyping(false);
+            setIsResizing(true);
+            startSize.current = {
+                width: boxRef.current.offsetWidth,
+                height: boxRef.current.offsetHeight,
+            };
+        } else if (e.target.tagName === 'SPAN') {
+            e.stopPropagation();
+            setIsTyping(true);
+        } else {
+            setIsTyping(false);
+            setIsDragging(true);
+            startOffset.current = {
+                x: e.clientX - position.x,
+                y: e.clientY - position.y
+            };
         }
-      });
+        const isSelected = true;
+        setSelectState([false, isSelected, text, textSize, textColor, bgColor]);
+        e.preventDefault();
+    };
 
-      return response.data.results.map(item => item.urls.regular);
-    } catch (error) {
-      console.error('Error fetching images from Unsplash:', error);
-      return [];
+    useEffect(() => {
+        if (textRef.current) {
+            textRef.current.focus();
+        }
+        setIsTyping(false);
+    }, [isTyping]);
+
+    const handleInput = (e) => {
+        const selection = window.getSelection();
+        const range = selection.getRangeAt(0);
+        
+        let newText = e.target.innerText;
+        setText(newText);
+        
+        const cursorPosition = {
+            node: range.startContainer,
+            offset: range.startOffset
+        };
+        
+        if (textRef.current && boxRef.current) {
+            if (textRef.current.scrollHeight + 25 > boxRef.current.offsetWidth) {
+                const newHeight = textRef.current.scrollHeight + 25;
+                setDimensions(prev => ({ ...prev, height: newHeight }));
+            }
+        }
+        
+        setTimeout(() => {
+            if (textRef.current) {
+                const newRange = document.createRange();
+                newRange.setStart(cursorPosition.node, cursorPosition.offset);
+                newRange.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+            }
+        }, 0); 
+    };
+    
+    const handleClick = () => {
+        const isSelected = true;
+        setSelectState([false, isSelected, text, textSize, textColor, bgColor]);
     }
-  };
 
-  return (
-    <div className="bg-white w-full text-center flex flex-col items-center justify-center">
-      <div className="w-full bg-blue-200">
-        <div className="flex border-b-4 border-gray-300 w-full items-center justify-center">
-          {showFunctions ?
-            <button onClick={expandTextBox}>
-              <FontAwesomeIcon icon={faChevronUp} size="1x" className="text-gray-600 pr-4" />
-            </button>
-            :
-            <button onClick={expandTextBox}>
-              <FontAwesomeIcon icon={faChevronDown} size="1x" className="text-gray-600 pr-4" />
-            </button>
-          }
-          <button onClick={addTextBox}>
-            <p className="font-bold p-4 bg-blue-200">Add Text Box</p>
-          </button>
+    const handleKeyDown = (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault(); 
+            const enteredText = `${text}\n`
+            setText(enteredText)
+        }
+    };
+
+    if (isDeleted) return null;
+
+    return (
+        <div
+            ref={boxRef}
+            className={'absolute p-3 text-gray-950 flex border-transparent items-center justify-center cursor-pointer rounded-md z-10 border-dashed border-2 focus:border-gray-500 active:border-gray-500'}
+            style={{ left: `${position.x}px`, top: `${position.y}px`, width: `${dimensions.width}px`, height: dimensions.height, background: bgColor }}
+            onMouseDown={handleMouseDown}
+        >
+            <span
+                ref={textRef}
+                className="w-full h-full mx-2 border-2 border-transparent rounded-s-sm focus:outline-none hover:border-gray-100 focus:border-gray-100 cursor-text whitespace-pre-line"
+                contentEditable
+                suppressContentEditableWarning
+                onInput={handleInput}
+                onKeyDown={handleKeyDown}
+                onClick={handleClick}
+                style={{ fontSize: textSize, color: textColor }}
+            >
+                {text}
+            </span>
+            <div className="resize-handle absolute bottom-0 right-0 w-3 h-3 cursor-se-resize border-b-4 border-b-transparent border-r-4 border-r-transparent
+            hover:border-b-gray-400 active:border-b-gray-400 rounded-br-md hover:border-r-gray-400 active:border-r-gray-400"></div>
         </div>
-      </div>
-      <div className="w-full">
-        {showFunctions &&
-          <div className="w-full">
-            {textBoxes.map((attributes, index) => (
-              <div key={index}>
-                {!attributes[0] &&
-                  <div className="m-2 border-b-2 w-full rounded-md py-2">
-                    <div className="flex flex-col justify-center items-center">
-                      <div className="flex w-3/4">
-                        <input
-                          type="text"
-                          id="prompt"
-                          name="prompt"
-                          className="active:bg-gray-300 focus:bg-gray-300 hover:bg-gray-300 shadow-sm rounded focus:outline-none bg-gray-200 w-full mt-2 p-3"
-                          placeholder="Enter prompt to generate text"
-                          required
-                          value={GPTPrompts[index]}
-                          onChange={(e) => modifyGPTPrompts(e.target.value, index)}
-                        />
-                        <div className="flex items-center ml-4 mt-2 bg-white border border-gray-300 rounded-md">
-                          <input
-                            type="number"
-                            value={fontSizes[index]}
-                            onChange={(e) => handleFontSizeChange(index, e.target.value)}
-                            min="8"
-                            className="px-2 py-1 w-16 text-center"
-                          />
-                          <span className="px-2">px</span>
-                        </div>
-                      </div>
-                      <div className="flex py-2 w-3/4 items-center ml-20">
-                        <div className="flex items-center mr-4">
-                          <input
-                            type="color"
-                            value={bgColors[index]}
-                            onChange={(e) => handleColorChange(index, 'bg', e.target.value)}
-                            className="w-8 h-8 p-0 border-none mt-2"
-                          />
-                          <span className="ml-2 mt-2 mr-4">Background</span>
-                        </div>
-                        <div className="flex items-center mr-4">
-                          <input
-                            type="color"
-                            value={textColors[index]}
-                            onChange={(e) => handleColorChange(index, 'text', e.target.value)}
-                            className="w-8 h-8 p-0 border-none mt-2"
-                          />
-                          <span className="ml-2 mt-2 mr-2">Text</span>
-                        </div>
-                        <button
-                          className='font-mono font-semibold bg-green-300 px-9 py-2 mr-1 p-1 mr-4 mt-2 rounded-md shadow-lg hover:bg-green-400'
-                          onClick={() => generateText(index)}
-                        >
-                          Generate
-                        </button>
-                        <button
-                          className="font-mono font-semibold bg-red-100 px-9 py-2 ml-4 mt-2 rounded-md shadow-lg hover:bg-red-200"
-                          onClick={() => deleteTextBox(index)}
-                        >
-                          <p>Delete Box</p>
-                          <p>{attributes[1]}</p>
-                        </button>
-                      </div>
-                      <div className="w-full mt-2 flex flex-wrap overflow-hidden mr-8 justify-center pb-4">
-                        {imageUrls[index] && imageUrls[index].map((url, imgIdx) => (
-                          <img
-                            key={imgIdx}
-                            src={url}
-                            alt={`Generated Image ${imgIdx + 1}`}
-                            className="w-auto h-32 mt-2 ml-4 hover:brightness-50"
-                            onClick={() => addImageToCanvas(index, url)}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                }
-              </div>
-            ))}
-          </div>
-        }
-      </div>
-    </div>
-  );
+    );
 };
 
-AddTextBox.propTypes = {
-  textBoxes: PropTypes.array.isRequired,
-  setTextBoxes: PropTypes.func.isRequired,
+MovableTextBox.propTypes = {
+    isDeleted: PropTypes.bool.isRequired,
+    setSelectState: PropTypes.func.isRequired,
+    startingText: PropTypes.string.isRequired,
+    textSize: PropTypes.number.isRequired,
+    textColor: PropTypes.string.isRequired,
+    bgColor: PropTypes.string.isRequired,
+    canvasRef: PropTypes.object.isRequired,
 };
 
-export default AddTextBox;
+export default MovableTextBox;

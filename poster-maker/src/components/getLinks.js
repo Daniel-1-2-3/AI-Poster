@@ -2,8 +2,7 @@ export async function getLinks(query) {
     const apiKey = '2b310ae0-67ce-11ef-9233-77e943c14913';
     const MisUrl = `https://app.zenserp.com/api/v2/search?q=${encodeURIComponent(query)}&apikey=${apiKey}`;
 
-    const query1 = 'diamond sword wiki';
-    const wikiUrl = `https://app.zenserp.com/api/v2/search?q=${encodeURIComponent(query1)}&apikey=${apiKey}`;
+    const wikiUrl = `https://app.zenserp.com/api/v2/search?q=${encodeURIComponent(query)}&apikey=${apiKey}`;
     try {
         //extract URL wikipedia
         const response1 = await fetch(wikiUrl);
@@ -19,9 +18,13 @@ export async function getLinks(query) {
 
         //concat results
         const finalList = [topTwoUrls[0], topTwoUrls[1], wikiUrls[0]]
-        return finalList
+        if (topTwoUrls[0] == undefined){
+            return ['link1.org', 'link2.com', 'link3.llink3.gov.ca']
+        } else{
+            return finalList
+        }
     } catch (error) {
         console.error('Error fetching search results:', error);
-        return ['', '', '']
+        return ['link1.org', 'link2.com', 'link3.llink3.gov.ca']
     }
 }
