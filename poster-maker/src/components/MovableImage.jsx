@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-const MovableImage = ({ image }) => {
+const MovableImage = ({ image, inputx=100, inputy=100}) => {
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
-    const [position, setPosition] = useState({ x: 100, y: 100 });
+    const [position, setPosition] = useState({ x: inputx, y: inputy });
     const [dimensions, setDimensions] = useState({ width: 200, height: 150 }); // Default dimensions
     const startOffset = useRef({ x: 0, y: 0 });
     const startSize = useRef({ width: 0, height: 0 });
@@ -133,6 +133,8 @@ const MovableImage = ({ image }) => {
 
 MovableImage.propTypes = {
     image: PropTypes.string.isRequired,
+    inputx: PropTypes.number.isRequired,
+    inputy: PropTypes.number.isRequired,
 };
 
 export default MovableImage;

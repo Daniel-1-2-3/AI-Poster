@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, textColor, bgColor, startingCanvasRef }) => {
+const MovableTextBox = ({ isDeleted, setSelectState, startingText, textSize, textColor, bgColor, startingCanvasRef}) => {
     const [isTyping, setIsTyping] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState(false);

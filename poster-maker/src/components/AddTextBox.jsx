@@ -106,7 +106,7 @@ const AddTextBox = ({ textBoxes, setTextBoxes }) => {
   };
 
   return (
-    <div className="bg-white w-full text-center flex flex-col items-center justify-center">
+    <div className="bg-white w-full text-center flex flex-col items-center">
       {loading && (
         <div 
           className="absolute inset-0 flex items-center justify-center bg-gray-100 opacity-75 z-50"
@@ -114,119 +114,122 @@ const AddTextBox = ({ textBoxes, setTextBoxes }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#f3f4f6', // Equivalent to bg-gray-100
+            backgroundColor: '#f3f4f6',
             opacity: 0.75,
           }}
         >
           <div 
             style={{
-              border: '4px solid #e5e7eb', // Equivalent to border-gray-200
-              borderTop: '4px solid #4b5563', // Equivalent to border-t-gray-600
+              border: '4px solid #e5e7eb',
+              borderTop: '4px solid #4b5563',
               borderRadius: '50%',
-              width: '3rem', // Equivalent to h-12 and w-12
+              width: '3rem',
               height: '3rem',
               animation: 'spin 1s linear infinite',
             }}
           ></div>
         </div>
       )}
-      <div className="w-full bg-blue-200">
-        <div className="flex border-b-4 border-gray-300 w-full items-center justify-center">
-          {showFunctions ?
-            <button onClick={expandTextBox}>
-              <FontAwesomeIcon icon={faChevronUp} size="1x" className="text-gray-600 pr-4" />
-            </button>
-            :
-            <button onClick={expandTextBox}>
-              <FontAwesomeIcon icon={faChevronDown} size="1x" className="text-gray-600 pr-4" />
-            </button>
-          }
-          <button onClick={addTextBox}>
-            <p className="font-bold p-4 bg-blue-200">Add Text Box</p>
+      <div className="w-full max-w-4xl bg-blue-200 p-16 border-b-gray-300 border-b-4">
+        <div className="flex w-full items-center justify-center px-4 py-2">
+          <button onClick={expandTextBox}>
+            <FontAwesomeIcon icon={showFunctions ? faChevronUp : faChevronDown} size="1x" className="text-gray-600" />
+          </button>
+          <button onClick={addTextBox} className="font-bold bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded-md shadow-md mx-4">
+            Add Text Box
           </button>
         </div>
       </div>
-      <div className="w-full">
+      <div className="w-full max-w-4xl p-0">
         {showFunctions &&
-          <div className="w-full">
+          <div className="space-y-4">
             {textBoxes.map((attributes, index) => (
-              <div key={index}>
+              <div key={index} className="border rounded-md p-4 bg-gray-50 shadow-md">
                 {!attributes[0] &&
                   <>
-                  {textBoxes[index][1] ?
-                    <div className="m-2 border-b-2 w-full rounded-md py-2">
-                      <div className="flex flex-col justify-center items-center">
-                        <div className="flex w-3/4">
+                    {textBoxes[index][1] ?
+                      <div className="space-y-4">
+                        <div className="flex flex-col space-y-4">
                           <input
                             type="text"
                             id="prompt"
                             name="prompt"
-                            className="active:bg-gray-300 focus:bg-gray-300 hover:bg-gray-300 shadow-sm rounded focus:outline-none bg-gray-200 w-full mt-2 p-3"
+                            className="border rounded-md p-2 bg-gray-200 focus:bg-gray-300 focus:outline-none"
                             placeholder="Enter prompt to generate text"
                             required
                             value={GPTPrompts[index]}
                             onChange={(e) => modifyGPTPrompts(e.target.value, index)}
                           />
-                          <div className="flex items-center ml-4 mt-2 bg-white border border-gray-300 rounded-md">
-                            <input
-                              type="number"
-                              value={textSizes[index]}
-                              onChange={(e) => handleFontSizeChange(index, e.target.value)}
-                              min="8"
-                              className="px-2 py-1 w-16 text-center"
-                            />
-                            <span className="px-2">px</span>
+                          <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="number"
+                                value={textSizes[index]}
+                                onChange={(e) => handleFontSizeChange(index, e.target.value)}
+                                min="8"
+                                className="border rounded-md px-2 py-1 text-center w-20"
+                              />
+                              <span>px</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="color"
+                                value={bgColors[index]}
+                                onChange={(e) => handleBgColorChange(index, e.target.value)}
+                                className="w-8 h-8 p-0 border-none"
+                              />
+                              <span>Background</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="color"
+                                value={textColors[index]}
+                                onChange={(e) => handleTextColorChange(index, e.target.value)}
+                                className="w-8 h-8 p-0 border-none"
+                              />
+                              <span>Text</span>
+                            </div>
+                            <button
+                              className='font-mono font-semibold bg-green-300 px-4 py-2 rounded-md shadow-md hover:bg-green-400'
+                              onClick={() => generateText(index)}
+                            >
+                              Generate
+                            </button>
+                            <button
+                              className="font-mono font-semibold bg-red-100 px-4 py-2 rounded-md shadow-md hover:bg-red-200"
+                              onClick={() => deleteTextBox(index)}
+                            >
+                              Delete Box
+                            </button>
                           </div>
-                        </div>
-                        <div className="flex py-2 w-3/4 items-center ml-20">
-                          <div className="flex items-center mr-4">
-                            <input
-                              type="color"
-                              value={bgColors[index]}
-                              onChange={(e) => handleBgColorChange(index, e.target.value)}
-                              className="w-8 h-8 p-0 border-none mt-2"
-                            />
-                            <span className="ml-2 mt-2 mr-4">Background</span>
-                          </div>
-                          <div className="flex items-center mr-4">
-                            <input
-                              type="color"
-                              value={textColors[index]}
-                              onChange={(e) => handleTextColorChange(index, e.target.value)}
-                              className="w-8 h-8 p-0 border-none mt-2"
-                            />
-                            <span className="ml-2 mt-2 mr-2">Text</span>
-                          </div>
-                          <button
-                            className='font-mono font-semibold bg-green-300 px-9 py-2 mr-1 p-1 mt-2 rounded-md shadow-lg hover:bg-green-400'
-                            onClick={() => generateText(index)}
-                          >
-                            Generate
-                          </button>
-                          <button
-                            className="font-mono font-semibold bg-red-100 px-9 py-2 ml-4 mt-2 rounded-md shadow-lg hover:bg-red-200"
-                            onClick={() => deleteTextBox(index)}
-                          >
-                            <p>Delete Box</p>
-                          </button>
                         </div>
                         <div>
-                          {(links[index].length > 0) &&
-                            <ul>
-                              <p>Links for further research</p>
-                              {links[index].map((link, subIndex) => (
-                                <li key={subIndex} >{link}</li>
-                              ))}
-                            </ul>
-                          }
+                          {(links[index].length > 0 && !attributes[0]) && (
+                            <div className="space-y-2">
+                              <h3 className="font-semibold text-lg">Links:</h3>
+                              <ul className="list-disc pl-5">
+                                {links[index].map((link, linkIndex) => (
+                                  <li key={linkIndex}>
+                                    <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                      {link}
+                                    </a>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-2" style={{ fontSize: `${textSizes[index]}px`, color: textColors[index], backgroundColor: bgColors[index] }}>
+                          {textBoxes[index][2]}
                         </div>
                       </div>
-                    </div>
-                    :
-                    <div className="m-2 border-b-2 w-full rounded-md py-2">
-                      empty
-                    </div>
-                  }
+                      :
+                      <div className="flex justify-center items-center p-4">
+                        <div className="text-center">
+                          <p className="text-gray-600">Click box to open commands...</p>
+                        </div>
+                      </div>
+                    }
                   </>
                 }
               </div>
@@ -236,6 +239,7 @@ const AddTextBox = ({ textBoxes, setTextBoxes }) => {
       </div>
     </div>
   );
+  
 };
 
 AddTextBox.propTypes = {
